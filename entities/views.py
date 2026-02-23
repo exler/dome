@@ -48,6 +48,18 @@ class EntitiesListView(ElidedPaginationMixin, DynamicEntityMixin, FilterView):
 
         return queryset
 
+    def get_context_data(self: Self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        tag_model = self.model._meta.get_field("tags").related_model
+        context["tag_options"] = list(tag_model.objects.order_by("name").values_list("name", flat=True))
+        selected_tags = self.request.GET.getlist("tags")
+        if not selected_tags:
+            raw_value = self.request.GET.get("tags", "")
+            selected_tags = [item.strip() for item in raw_value.split(",") if item.strip()]
+        context["selected_tags"] = selected_tags
+        context["search_query"] = self.request.GET.get("search", "")
+        return context
+
 
 class EntitiesDetailView(DynamicEntityMixin, DetailView):
     template_name = "entities/entities_detail.html"

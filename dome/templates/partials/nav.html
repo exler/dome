@@ -1,12 +1,10 @@
 {% load static %}
-<nav class="border-b-3 border-black bg-white py-3 px-4 mb-6">
+<nav class="border-b-3 border-black py-3 px-4 mb-6">
     <div class="flex items-center justify-between">
         {# Logo and brand #}
         <div class="flex items-center gap-2">
             <a href="{% url 'index' %}" class="flex items-center gap-2">
-                <img src="{% static 'img/logo.png' %}"
-                     alt="dome"
-                     class="h-6">
+                <img src="{% static 'img/logo.png' %}" alt="dome" class="h-6" />
             </a>
         </div>
 
@@ -22,52 +20,101 @@
         {# User Menu #}
         <div class="flex items-center gap-2">
             {% if request.user.is_authenticated %}
-                <a class="text-sm font-bold hidden md:block"
-                   href="{% url 'tracking:dashboard' request.user.username %}">{{ request.user.username }}</a>
-                <div x-data="{ open: false }"
-                     @click.outside="open=false"
-                     class="relative">
-                    <button @click="open=!open" class="btn btn-outline text-xs py-1 px-2">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             width="16"
-                             height="16"
-                             viewBox="0 0 24 24">
-                            <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-                        </svg>
-                    </button>
-                    <div x-show="open"
-                        class="absolute z-50 right-0 mt-2 w-48 bg-white border-3 border-black"
-                        style="box-shadow: 4px 4px 0px 0px #000;"
-                        x-transition
-                        x-cloak>
-                        <a class="block md:hidden px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase border-b-2 border-black"
-                           href="{% url 'tracking:dashboard' request.user.username %}">{{ request.user.username }}</a>
+            <a class="text-sm font-bold hidden md:block" href="{% url 'tracking:dashboard' request.user.username %}"
+                >{{ request.user.username }}</a
+            >
+            <div x-data="{ open: false }" @click.outside="open=false" class="relative">
+                <button @click="open=!open" class="btn btn-outline text-xs py-1 px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+                    </svg>
+                </button>
+                <div
+                    x-show="open"
+                    class="absolute z-50 right-0 mt-2 w-48 bg-white border-3 border-black"
+                    style="box-shadow: 4px 4px 0px 0px #000"
+                    x-transition
+                    x-cloak
+                >
+                    <a
+                        class="block md:hidden px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase border-b-2 border-black"
+                        href="{% url 'tracking:dashboard' request.user.username %}"
+                        >{{ request.user.username }}</a
+                    >
 
-                        {# Mobile nav links #}
-                        <div class="md:hidden border-b-2 border-black">
-                            <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'entities:entities-list' 'movies' %}">Movies</a>
-                            <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'entities:entities-list' 'shows' %}">Shows</a>
-                            <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'entities:entities-list' 'books' %}">Books</a>
-                            <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'entities:entities-list' 'games' %}">Games</a>
-                            <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'entities:entities-search' %}">Search</a>
-                        </div>
-
-                        {% if user.is_staff %}
-                            <div class="border-b-2 border-black">
-                                <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'admin:entities_movie_add' %}">Add Movie</a>
-                                <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'admin:entities_show_add' %}">Add Show</a>
-                                <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'admin:entities_book_add' %}">Add Book</a>
-                                <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'admin:entities_game_add' %}">Add Game</a>
-                            </div>
-                        {% endif %}
-
-                        <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'users:settings' %}">Settings</a>
-                        <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'integrations:import-tracking-data' %}">Import/Export</a>
-                        <a class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase" href="{% url 'users:logout' %}">Log Out</a>
+                    {# Mobile nav links #}
+                    <div class="md:hidden border-b-2 border-black">
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'entities:entities-list' 'movies' %}"
+                            >Movies</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'entities:entities-list' 'shows' %}"
+                            >Shows</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'entities:entities-list' 'books' %}"
+                            >Books</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'entities:entities-list' 'games' %}"
+                            >Games</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'entities:entities-search' %}"
+                            >Search</a
+                        >
                     </div>
+
+                    {% if user.is_staff %}
+                    <div class="border-b-2 border-black">
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'admin:entities_movie_add' %}"
+                            >Add Movie</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'admin:entities_show_add' %}"
+                            >Add Show</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'admin:entities_book_add' %}"
+                            >Add Book</a
+                        >
+                        <a
+                            class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                            href="{% url 'admin:entities_game_add' %}"
+                            >Add Game</a
+                        >
+                    </div>
+                    {% endif %}
+
+                    <a
+                        class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                        href="{% url 'users:settings' %}"
+                        >Settings</a
+                    >
+                    <a
+                        class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                        href="{% url 'integrations:import-tracking-data' %}"
+                        >Import/Export</a
+                    >
+                    <a
+                        class="block px-3 py-2 hover:bg-gray-100 text-xs font-bold uppercase"
+                        href="{% url 'users:logout' %}"
+                        >Log Out</a
+                    >
                 </div>
+            </div>
             {% else %}
-                <a class="btn btn-primary text-xs" href="{% url 'users:login' %}">Sign In</a>
+            <a class="btn btn-primary text-xs" href="{% url 'users:login' %}">Sign In</a>
             {% endif %}
         </div>
     </div>

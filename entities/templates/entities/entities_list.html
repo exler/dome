@@ -6,15 +6,101 @@
 {% block content %}
     <h2 class="text-2xl font-bold mb-4 uppercase">{{ entity_type|title }}</h2>
     <div class="mb-6">
-        <form method="get" class="relative max-w-md">
-            <input type="search"
-                   class="w-full px-4 py-3 border-3 border-black text-sm"
-                   name="{{ filter.form.search.name }}"
-                   placeholder="Search {{ entity_type }}..." />
+        {# AIDEV-NOTE: Tag filter UI enforces selection from autocomplete options only. #}
+        <form method="get"
+              class="w-full"
+              x-data="tagFilter('selected-tags-{{ entity_type|slugify }}', 'tag-options-data-{{ entity_type|slugify }}')">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <div>
+                    <label class="text-xs uppercase font-bold block mb-2">Search</label>
+                    <input type="search"
+                           class="w-full px-4 py-3 border-2 border-black text-sm"
+                           name="{{ filter.form.search.name }}"
+                           value="{{ search_query }}"
+                           placeholder="Search {{ entity_type }}..."
+                           aria-label="Search {{ entity_type }}" />
+                </div>
+                <div>
+                    <label class="text-xs uppercase font-bold block mb-2">Tags</label>
+                    <div class="border-2 border-black bg-white px-3 py-2 flex flex-wrap items-center gap-2 min-h-[50px]">
+                        <template x-for="(tag, index) in selected" :key="tag">
+                            <span class="badge bg-neo-yellow text-black flex items-center gap-1">
+                                <span x-text="tag"></span>
+                                <button type="button"
+                                        class="text-black leading-none"
+                                        @click="remove(index)"
+                                        aria-label="Remove tag">
+                                    &times;
+                                </button>
+                            </span>
+                        </template>
+                        <input x-model="textInput"
+                               list="tag-options-{{ entity_type|slugify }}"
+                               @keydown.enter.prevent="addFromInput()"
+                               @change="addFromInput()"
+                               class="flex-1 min-w-[180px] border-0 p-0 text-sm focus:outline-none"
+                               placeholder="Select a tag from the list"
+                               aria-label="Add tag filter" />
+                        <datalist id="tag-options-{{ entity_type|slugify }}">
+                            {% for tag in tag_options %}
+                                <option value="{{ tag }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <template x-for="tag in selected" :key="`input-${tag}`">
+                        <input type="hidden" name="tags" :value="tag">
+                    </template>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 mt-4">
+                <button type="submit" class="btn btn-primary text-xs">Apply Filters</button>
+                {% if search_query or selected_tags %}
+                    <a href="{% url 'entities:entities-list' entity_type %}" class="btn btn-outline text-xs">
+                        Clear
+                    </a>
+                {% endif %}
+            </div>
         </form>
+        {% with "selected-tags-"|add:entity_type|slugify as selected_id %}
+            {{ selected_tags|json_script:selected_id }}
+        {% endwith %}
+        {% with "tag-options-data-"|add:entity_type|slugify as options_id %}
+            {{ tag_options|json_script:options_id }}
+        {% endwith %}
+        <script>
+            function tagFilter(selectedId, optionsId) {
+                return {
+                    selected: JSON.parse(document.getElementById(selectedId).textContent),
+                    options: JSON.parse(document.getElementById(optionsId).textContent),
+                    textInput: "",
+                    add(value) {
+                        const tag = value.trim();
+                        if (!tag) {
+                            return;
+                        }
+                        const isAllowed = this.options.some((item) => item.toLowerCase() === tag.toLowerCase());
+                        if (!isAllowed) {
+                            this.textInput = "";
+                            return;
+                        }
+                        const exists = this.selected.some((item) => item.toLowerCase() === tag.toLowerCase());
+                        if (!exists) {
+                            this.selected.push(tag);
+                        }
+                        this.textInput = "";
+                    },
+                    addFromInput() {
+                        this.add(this.textInput);
+                    },
+                    remove(index) {
+                        this.selected.splice(index, 1);
+                    }
+                };
+            }
+        </script>
     </div>
     {% if page_obj %}
-        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 md:gap-x-6 gap-y-8 justify-items-center">
+        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 md:gap-x-6 gap-y-8 justify-items-baseline">
             {% for object in page_obj %}
                 {% include "entities/partials/entity_item.html" with entity=object %}
             {% endfor %}

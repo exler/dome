@@ -9,12 +9,23 @@ from entities.models import Book, EntityBase, Game, Movie, Show
 
 class EntityBaseFilter(FilterSet):
     search = django_filters.CharFilter(method="search_filter")
+    tags = django_filters.CharFilter(method="tags_filter")
 
     class Meta:
-        fields: ClassVar = ["search"]
+        fields: ClassVar = ["search", "tags"]
 
     def search_filter(self: Self, queryset: QuerySet[EntityBase], name: str, value: str) -> QuerySet[EntityBase]:
         return queryset.filter(Q(name__icontains=value) | Q(aliases__icontains=value))
+
+    def tags_filter(self: Self, queryset: QuerySet[EntityBase], name: str, value: str) -> QuerySet[EntityBase]:
+        raw_values = self.data.getlist("tags")
+        if not raw_values and value:
+            raw_values = [item.strip() for item in value.split(",") if item.strip()]
+
+        for tag_value in raw_values:
+            queryset = queryset.filter(tags__name__iexact=tag_value)
+
+        return queryset.distinct()
 
 
 class MovieFilter(EntityBaseFilter):

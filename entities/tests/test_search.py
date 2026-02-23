@@ -6,7 +6,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from entities.factories import BookFactory, GameFactory, MovieFactory, ShowFactory
-from entities.models import EntityBase
+from entities.models import EntityBase, MovieTag
 from entities.views import EntitiesSearchView
 
 User = get_user_model()
@@ -63,3 +63,27 @@ class SearchTestCase(TestCase):
         MovieFactory(name="Justice", aliases=["Napad"])
         queryset = self._make_search_query("Napad")
         self._assert_results_desired(queryset, ["Justice"])
+
+
+class TagFilterTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls: type[Self]) -> None:
+        cls.user = User.objects.create_user(username="taguser", password="12345")  # noqa: S106
+        cls.tag_action = MovieTag.objects.create(name="Action")
+        cls.tag_sci_fi = MovieTag.objects.create(name="Sci-Fi")
+        cls.tag_drama = MovieTag.objects.create(name="Drama")
+
+        cls.movie_both = MovieFactory(name="Both Tags")
+        cls.movie_both.tags.add(cls.tag_action, cls.tag_sci_fi)
+
+        cls.movie_one = MovieFactory(name="One Tag")
+        cls.movie_one.tags.add(cls.tag_action)
+
+        cls.movie_other = MovieFactory(name="Other Tag")
+        cls.movie_other.tags.add(cls.tag_drama)
+
+    def test_tag_filter_requires_all_selected_tags(self: Self) -> None:
+        response = self.client.get(reverse("entities:entities-list", args=["movies"]), {"tags": ["Action", "Sci-Fi"]})
+        self.assertEqual(response.status_code, 200)
+        results = [obj.name for obj in response.context["page_obj"]]
+        self.assertCountEqual(results, ["Both Tags"])
