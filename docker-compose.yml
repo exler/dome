@@ -1,6 +1,7 @@
 services:
-    web:
+    dome:
         build: .
+        container_name: dome-app
         command: server
         volumes:
             - .:/app
@@ -10,5 +11,15 @@ services:
         environment:
             - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
 
+    rustfs:
+        image: rustfs/rustfs:latest
+        container_name: dome-rustfs
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - rustfs_data:/data
+
 volumes:
+    rustfs_data:
     dome_data:
