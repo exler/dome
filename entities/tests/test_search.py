@@ -1,4 +1,5 @@
 from typing import Iterable, Self
+from unittest import expectedFailure
 
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
@@ -63,6 +64,14 @@ class SearchTestCase(TestCase):
         MovieFactory(name="Justice", aliases=["Napad"])
         queryset = self._make_search_query("Napad")
         self._assert_results_desired(queryset, ["Justice"])
+
+    @expectedFailure
+    def test_search_by_polish_name_and_alias(self) -> None:
+        MovieFactory(name="Za duży na bajki")
+        MovieFactory(name="Too Old for Fairy Tales 2", aliases=["Za duży na bajki 2"])
+
+        queryset = self._make_search_query("Za duży")
+        self._assert_results_desired(queryset, ["Za duży na bajki", "Too Old for Fairy Tales 2"])
 
 
 class TagFilterTestCase(TestCase):
