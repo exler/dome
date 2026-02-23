@@ -3,24 +3,21 @@ name = "dome"
 version = "0.1.0"
 description = "Comprehensive media tracker"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "django>=5.2",
     "django-filter>=25.2",
     "django-storages[s3]>=1.14.6",
     "factory-boy>=3.3.3",
-    "gunicorn[gevent]>=23.0.0",
-    "pillow>=12.0.0",
-    "psycopg>=3.2.13",
+    "gunicorn[gevent]>=25.1.0",
+    "pillow>=12.1.1",
+    "psycopg>=3.3.3",
     "python-dotenv>=1.2.1",
     "python-magic>=0.4.27",
     "requests>=2.32.5",
-    "sentry-sdk[django]>=2.46.0",
+    "sentry-sdk[django]>=2.53.0",
     "whitenoise[brotli]>=6.11.0",
 ]
-
-[project.optional-dependencies]
-windows = ["psycopg-binary>=3.2.6", "python-magic-bin>=0.4.14"]
 
 [dependency-groups]
 dev = ["djlint>=1.36.4", "ipython>=8.31.0", "ruff>=0.9.2"]
