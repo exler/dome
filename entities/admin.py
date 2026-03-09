@@ -25,6 +25,7 @@ from entities.models import (
     ShowTag,
 )
 from integrations.external.igdb import igdb_client
+from integrations.external.open_library import open_library_client
 from integrations.external.tmdb import TMDBSupportedEntityType, tmdb_client
 
 
@@ -350,4 +351,76 @@ class GameAdmin(EntityBaseAdmin):
 
 @admin.register(Book)
 class BookAdmin(EntityBaseAdmin):
-    pass
+    @staticmethod
+    def _parse_publish_date(book_data: dict) -> datetime.date | None:
+        publish_dates = book_data.get("publish_date", [])
+        for publish_date in publish_dates:
+            for date_format in ("%B %d, %Y", "%B %Y", "%Y-%m-%d", "%Y"):
+                try:
+                    parsed_date = datetime.datetime.strptime(publish_date, date_format)
+                    if date_format == "%Y":
+                        return datetime.date(parsed_date.year, 1, 1)
+
+                    if date_format == "%B %Y":
+                        return datetime.date(parsed_date.year, parsed_date.month, 1)
+
+                    return parsed_date.date()
+                except ValueError:
+                    continue
+
+        first_publish_year = book_data.get("first_publish_year")
+        if first_publish_year:
+            return datetime.date(int(first_publish_year), 1, 1)
+
+        return None
+
+    def _fill_automagically(self, request: HttpRequest, object_id: int) -> None:
+        book_entity_obj = Book.objects.get(id=object_id)
+
+        response = open_library_client.search(book_entity_obj.name)
+        docs = response.get("docs", [])
+        if len(docs) < 1:
+            messages.add_message(request, messages.ERROR, "No data found for this book.")
+            return
+
+        # AIDEV-NOTE: Open Library search docs contain lightweight metadata; work details hold description.
+        book_data = docs[0]
+        work_key = book_data.get("key")
+        work_details = open_library_client.get_work_details(work_key) if work_key else {}
+
+        if not book_entity_obj.description:
+            description = work_details.get("description", "")
+            if isinstance(description, dict):
+                book_entity_obj.description = description.get("value", "")
+            elif isinstance(description, str):
+                book_entity_obj.description = description
+
+        if not book_entity_obj.publish_date:
+            book_entity_obj.publish_date = self._parse_publish_date(book_data)
+
+        if not book_entity_obj.author:
+            book_entity_obj.author = book_data.get("author_name", [])
+
+        if not book_entity_obj.tags.exists():
+            tag_objs = []
+            for subject in book_data.get("subject", [])[:12]:
+                try:
+                    tag = BookTag.objects.get_with_aliases(subject)[0]
+                    tag_objs.append(tag)
+                except BookTag.DoesNotExist:
+                    pass
+
+            book_entity_obj.tags.set(tag_objs)
+
+        if not book_entity_obj.goodreads_url:
+            goodreads_id_list = book_data.get("id_goodreads", [])
+            if goodreads_id_list:
+                book_entity_obj.goodreads_url = f"https://www.goodreads.com/book/show/{goodreads_id_list[0]}"
+
+        if not book_entity_obj.image:
+            cover_id = book_data.get("cover_i")
+            if cover_id:
+                image_content = File(open_library_client.get_cover_image(cover_id))
+                book_entity_obj.image.save(f"{cover_id}.jpg", image_content, save=False)
+
+        book_entity_obj.save()
