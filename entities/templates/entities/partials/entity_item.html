@@ -69,7 +69,7 @@
         </div>
 
         {# Clickable overlay #}
-        <a href="{% url 'entities:entities-detail' entity|verbosename entity.id %}"
+        <a href="{% url 'entities:entities-detail-slug' entity|verbosename entity.id entity.slug %}"
            class="absolute inset-0 z-10"
            aria-label="View {{ entity.name }}"></a>
         </div>

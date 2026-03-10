@@ -173,7 +173,10 @@ class EntityBase(TimestampedModel):
         ordering = ("name", "-id")
 
     def get_absolute_url(self: Self) -> str:
-        return reverse("entities:entities-detail", kwargs={"entity_type": self._meta.verbose_name, "pk": self.pk})
+        return reverse(
+            "entities:entities-detail-slug",
+            kwargs={"entity_type": self._meta.verbose_name, "pk": self.pk, "slug": self.slug},
+        )
 
 
 class Movie(EntityBase):
