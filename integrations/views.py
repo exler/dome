@@ -20,10 +20,7 @@ class ImportTrackingDataView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy("integrations:import-tracking-data")
 
     def form_valid(self: Self, form: ImportTrackingDataForm) -> HttpResponse:
-        importer_class = IMPORTER_MAPPING.get(form.cleaned_data["import_format"])
-        if not importer_class:
-            raise ValueError("Invalid import format")
-
+        importer_class = IMPORTER_MAPPING[form.cleaned_data["import_format"]]
         importer = importer_class(self.request.user, form.cleaned_data["import_file"])
         importer.run()
 

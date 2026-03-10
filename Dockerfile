@@ -31,12 +31,8 @@ COPY --from=builder /app/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r /tmp/requirements.txt \
     && rm -rf /wheels /tmp/requirements.txt
 
-# Cleanup and setup app user and directory
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    libmagic1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd -U liara \
+# Setup app user and directory
+RUN useradd -U liara \
     && install -d -m 0755 -o liara -g liara /app/staticfiles \
     && install -d -m 0755 -o liara -g liara /app/media \
     && install -d -m 0755 -o liara -g liara /app/data

@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from itertools import tee
 from typing import ClassVar, Self
 
-import magic
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -29,26 +28,42 @@ class BaseImporter(ABC):
         self.validate()
         self.import_data()
 
+    @classmethod
     @abstractmethod
-    def validate(self: Self) -> None: ...
+    def validate_file(cls, import_file: File) -> None: ...
+
+    def validate(self) -> None:
+        self.validate_file(self.source_file)
 
     @abstractmethod
-    def import_data(self: Self) -> None: ...
+    def import_data(self) -> None: ...
 
 
 class CSVImporter(BaseImporter):
-    ALLOWED_MIME_TYPES = ("text/csv", "text/plain")
+    EXPECTED_HEADERS: tuple[str, ...]
 
-    def validate(self: Self) -> None:
-        detected_mime_type = magic.from_buffer(self.source_file.read(), mime=True)
-        if detected_mime_type not in self.ALLOWED_MIME_TYPES:
-            raise ValidationError("Invalid file type.")
-
-        self.source_file.seek(0)
+    @classmethod
+    def validate_file(cls, import_file: File) -> None:
+        dialect = csv.Sniffer().sniff(import_file.read(1024).decode("utf-8"))
+        import_file.seek(0)
+        reader = csv.reader(import_file.read().decode("utf-8"), dialect)
+        headers = set(next(reader))
+        if headers != set(cls.EXPECTED_HEADERS):
+            raise ValidationError("Invalid CSV structure.")
 
 
 class GoodreadsImporter(CSVImporter):
     IMPORTER_NAME = "goodreads_csv"
+    EXPECTED_HEADERS = (
+        "Book Id",
+        "Title",
+        "Author",
+        "Additional Authors",
+        "Original Publication Year",
+        "My Rating",
+        "Exclusive Shelf",
+        "My Review",
+    )
 
     STATUS_MAPPING: ClassVar = {
         "read": TrackingObject.Status.COMPLETED,
@@ -102,6 +117,15 @@ class GoodreadsImporter(CSVImporter):
 
 class SimklImporter(CSVImporter):
     IMPORTER_NAME = "simkl_csv"
+    EXPECTED_HEADERS = (
+        "SIMKL_ID",
+        "Title",
+        "Type",
+        "Year",
+        "Watchlist",
+        "Rating",
+        "Memo",
+    )
 
     STATUS_MAPPING: ClassVar = {
         "dropped": TrackingObject.Status.DROPPED,
@@ -168,4 +192,4 @@ FRONTEND_IMPORTERS = [
     SimklImporter,
 ]
 
-IMPORTER_MAPPING = {importer.IMPORTER_NAME: importer for importer in FRONTEND_IMPORTERS}
+IMPORTER_MAPPING: dict[str, type[CSVImporter]] = {importer.IMPORTER_NAME: importer for importer in FRONTEND_IMPORTERS}
