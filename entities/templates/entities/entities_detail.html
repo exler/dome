@@ -1,8 +1,26 @@
 {% extends "base.html" %}
-{% load dome_tags entities %}
+{% load static dome_tags entities %}
 {% block title %}
     {{ object.name }}
 {% endblock title %}
+{% block meta %}
+    {# AIDEV-NOTE: Rich OG/Twitter tags for entity detail pages. Image is the S3-hosted cover or a placeholder. #}
+    <meta property="og:site_name" content="Dome">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ object.name }}">
+    <meta property="og:description" content="{{ object.description|default:"No description available."|truncatechars:200 }}">
+    <meta property="og:url" content="{{ base_url }}{{ object.get_absolute_url }}">
+    {% if object.image %}
+        <meta property="og:image" content="{{ object.image|imageurl }}">
+        <meta name="twitter:image" content="{{ object.image|imageurl }}">
+    {% else %}
+        <meta property="og:image" content="{{ base_url }}{% static 'img/image-placeholder.png' %}">
+        <meta name="twitter:image" content="{{ base_url }}{% static 'img/image-placeholder.png' %}">
+    {% endif %}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ object.name }}">
+    <meta name="twitter:description" content="{{ object.description|default:"No description available."|truncatechars:200 }}">
+{% endblock meta %}
 {% block content %}
     <!-- Back Button and Entity Type Badge -->
     <div class="flex items-center justify-between mb-4">

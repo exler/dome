@@ -1,4 +1,4 @@
-{% load static %}
+{% load static dome_tags %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -9,6 +9,19 @@
             {% endblock title %}
             | Dome
         </title>
+        {% block meta %}
+            {# AIDEV-NOTE: Default site-wide OG/Twitter fallback tags. Override this block per page for richer previews. #}
+            <meta property="og:site_name" content="Dome">
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="Dome">
+            <meta property="og:description" content="Track and rate your favourite movies, shows, games, and books.">
+            <meta property="og:url" content="{{ request.build_absolute_uri }}">
+            <meta property="og:image" content="{{ base_url }}{% static 'apple-touch-icon.png' %}">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="Dome">
+            <meta name="twitter:description" content="Track and rate your favourite movies, shows, games, and books.">
+            <meta name="twitter:image" content="{{ base_url }}{% static 'apple-touch-icon.png' %}">
+        {% endblock meta %}
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=sora:400,700" rel="stylesheet" />
         <link rel="stylesheet" href="{% static 'css/base.css' %}" />

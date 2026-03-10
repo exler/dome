@@ -1,8 +1,26 @@
 {% extends "base.html" %}
-{% load dome_tags entities %}
+{% load static dome_tags entities %}
 {% block title %}
     My Dashboard
 {% endblock title %}
+{% block meta %}
+    {# AIDEV-NOTE: OG tags for user dashboard. Uses avatar as image (with placeholder fallback). #}
+    <meta property="og:site_name" content="Dome">
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="{{ user.username }} on Dome">
+    <meta property="og:description" content="Check out {{ user.username }}'s media dashboard on Dome.">
+    <meta property="og:url" content="{{ base_url }}{% url 'tracking:dashboard' user.username %}">
+    {% if user.avatar %}
+        <meta property="og:image" content="{{ user.avatar.url }}">
+        <meta name="twitter:image" content="{{ user.avatar.url }}">
+    {% else %}
+        <meta property="og:image" content="{{ base_url }}{% static 'img/avatar-placeholder.png' %}">
+        <meta name="twitter:image" content="{{ base_url }}{% static 'img/avatar-placeholder.png' %}">
+    {% endif %}
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ user.username }} on Dome">
+    <meta name="twitter:description" content="Check out {{ user.username }}'s media dashboard on Dome.">
+{% endblock meta %}
 {% block content %}
     <div class="flex flex-col gap-6">
         {# User header with neobrutalist design #}
