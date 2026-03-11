@@ -162,13 +162,6 @@ class EntityBase(TimestampedModel):
 
     class Meta:
         abstract = True
-        constraints: ClassVar = [
-            models.UniqueConstraint(
-                Lower("name"),
-                name="%(class)s_unique_name",
-                violation_error_message=_("Item with that name already exists."),
-            ),
-        ]
         indexes: ClassVar = []
         ordering = ("name", "-id")
 
