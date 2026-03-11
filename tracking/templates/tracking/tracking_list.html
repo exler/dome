@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static dome_tags entities %}
 {% block title %}
-    {{ entity_type|title }}
+    {{ user.username }}'s {{ entity_type|title }} | Dome
 {% endblock title %}
 {% block meta %}
     {# AIDEV-NOTE: OG tags for user tracking list pages. Uses avatar as image (with placeholder fallback). #}
     <meta property="og:site_name" content="Dome">
     <meta property="og:type" content="profile">
-    <meta property="og:title" content="{{ user.username }}'s {{ entity_type|title }} on Dome">
+    <meta property="og:title" content="{{ user.username }}'s {{ entity_type|title }} | Dome">
     <meta property="og:description" content="Browse {{ user.username }}'s {{ entity_type|title }} collection on Dome.">
     <meta property="og:url" content="{{ base_url }}{% url 'tracking:tracking-list' user.username entity_type %}">
     {% if user.avatar %}

@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static dome_tags entities %}
 {% block title %}
-    My Dashboard
+    {{ user.username }} | Dome
 {% endblock title %}
 {% block meta %}
     {# AIDEV-NOTE: OG tags for user dashboard. Uses avatar as image (with placeholder fallback). #}
     <meta property="og:site_name" content="Dome">
     <meta property="og:type" content="profile">
-    <meta property="og:title" content="{{ user.username }} on Dome">
+    <meta property="og:title" content="{{ user.username }} | Dome">
     <meta property="og:description" content="Check out {{ user.username }}'s media dashboard on Dome.">
     <meta property="og:url" content="{{ base_url }}{% url 'tracking:dashboard' user.username %}">
     {% if user.avatar %}

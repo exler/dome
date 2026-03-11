@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static dome_tags entities %}
 {% block title %}
-    {{ object.name }}
+    {{ object.name }} | Dome
 {% endblock title %}
 {% block meta %}
     {# AIDEV-NOTE: Rich OG/Twitter tags for entity detail pages. Image is the S3-hosted cover or a placeholder. #}
     <meta property="og:site_name" content="Dome">
     <meta property="og:type" content="article">
-    <meta property="og:title" content="{{ object.name }}">
+    <meta property="og:title" content="{{ object.name }} | Dome">
     <meta property="og:description" content="{{ object.description|default:"No description available."|truncatechars:200 }}">
     <meta property="og:url" content="{{ base_url }}{{ object.get_absolute_url }}">
     {% if object.image %}
