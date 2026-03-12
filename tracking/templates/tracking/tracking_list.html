@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static dome_tags entities %}
 {% block title %}
-    {{ user.username }}'s {{ entity_type|title }} | Dome
+    {{ user.username }}'s {{ entity_type|title }}
 {% endblock title %}
 {% block meta %}
     {# AIDEV-NOTE: OG tags for user tracking list pages. Uses avatar as image (with placeholder fallback). #}
