@@ -132,7 +132,7 @@ def image_upload_destination(instance: models.Model, filename: str) -> str:
 class EntityBase(TimestampedModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128, unique=True)
-    description = models.TextField(blank=True, validators=[MaxLengthValidator(500)])
+    description = models.TextField(blank=True, validators=[MaxLengthValidator(1000)])
 
     aliases = models.JSONField(
         default=list,
