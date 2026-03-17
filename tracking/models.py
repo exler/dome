@@ -28,7 +28,7 @@ class TrackingObject(TimestampedModel):
     rating = models.PositiveSmallIntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    notes = models.TextField(blank=True, validators=[MaxLengthValidator(150)])
+    notes = models.TextField(blank=True, validators=[MaxLengthValidator(500)])
 
     class Meta:
         indexes: ClassVar = [

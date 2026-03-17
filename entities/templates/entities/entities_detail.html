@@ -108,6 +108,23 @@
                 </p>
             {% endif %}
 
+            <!-- Tracking Form Errors -->
+            {% if form.errors %}
+                <div class="border-3 border-black bg-red-100 p-4 mb-4">
+                    <h3 class="font-bold text-xs uppercase mb-2">Could not save changes</h3>
+                    <ul class="list-disc list-inside text-xs text-red-700">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
             <!-- Status and Rating Box -->
             <div x-data="{ statusDropdownOpen: false, ratingDropdownOpen: false, hoverIndex: null }"
                  class="neo-box p-4 mb-6">

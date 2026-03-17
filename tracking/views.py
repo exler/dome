@@ -104,6 +104,14 @@ class TrackingFormView(LoginRequiredMixin, TrackingObjectMixin, ModelFormMixin, 
             self.request, "entities/entities_detail.html", {"object": self.entity, "tracking_obj": self.object}
         )
 
+    def form_invalid(self: Self, form: ModelForm) -> HttpResponse:
+        return render(
+            self.request,
+            "entities/entities_detail.html",
+            {"object": self.entity, "tracking_obj": self.object, "form": form},
+            status=400,
+        )
+
     def get_context_data(self: Self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["entity"] = self.entity

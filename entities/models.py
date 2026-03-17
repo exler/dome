@@ -5,7 +5,6 @@ from typing import ClassVar, Self
 
 from django.core.validators import MaxLengthValidator
 from django.db import models
-from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
