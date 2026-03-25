@@ -153,7 +153,7 @@ class EntityBaseAdmin(admin.ModelAdmin):
         ]
         return custom_urls + default_urls
 
-    def _fill_automagically(self: Self, request: HttpRequest, object_id: int) -> None:
+    def _fill_automagically(self, request: HttpRequest, object_id: int) -> HttpResponse:
         """
         Fill entity data using entity-specific approach (usually external API call).
 
@@ -188,48 +188,46 @@ class EntityBaseAdmin(admin.ModelAdmin):
 
 @admin.register(Movie)
 class MovieAdmin(EntityBaseAdmin):
-    def _fill_automagically(self, request: HttpRequest, object_id: int) -> None:
+    def _fill_automagically(self, request: HttpRequest, object_id: int) -> HttpResponse:
         movie_entity_obj = Movie.objects.get(id=object_id)
 
         response = tmdb_client.search(TMDBSupportedEntityType.MOVIE, movie_entity_obj.name)
         if len(response["results"]) < 1:
             messages.add_message(request, messages.ERROR, "No data found for this movie.")
-            return
+            return self.redirect_to_change_view(object_id)
 
         movie_id = response["results"][0]["id"]
         movie_details = tmdb_client.get_details(TMDBSupportedEntityType.MOVIE, movie_id)
 
-        if not movie_entity_obj.description:
-            movie_entity_obj.description = movie_details["overview"]
+        if not movie_entity_obj.description and (overview := movie_details.get("overview")):
+            movie_entity_obj.description = overview
 
-        if not movie_entity_obj.length:
-            movie_entity_obj.length = movie_details["runtime"]
+        if not movie_entity_obj.length and (runtime := movie_details.get("runtime")):
+            movie_entity_obj.length = runtime
 
-        if not movie_entity_obj.release_date:
-            movie_entity_obj.release_date = movie_details["release_date"]
+        if not movie_entity_obj.release_date and (release_date := movie_details.get("release_date")):
+            movie_entity_obj.release_date = release_date
 
-        if not movie_entity_obj.director:
-            movie_entity_obj.director = [
-                person["name"] for person in movie_details["credits"]["crew"] if person["job"] == "Director"
-            ]
+        if not movie_entity_obj.director and (crew := movie_details.get("credits", {}).get("crew")):
+            movie_entity_obj.director = [person["name"] for person in crew if person["job"] == "Director"]
 
-        if not movie_entity_obj.cast:
-            movie_entity_obj.cast = [person["name"] for person in movie_details["credits"]["cast"][:8]]
+        if not movie_entity_obj.cast and (cast := movie_details.get("credits", {}).get("cast")):
+            movie_entity_obj.cast = [person["name"] for person in cast[:8]]
 
         if not movie_entity_obj.tags.exists():
             tag_objs = []
-            for genre in movie_details["genres"]:
+            for genre in movie_details.get("genres", []):
                 tag = MovieTag.objects.get_or_create_with_aliases(genre["name"])[0]
                 tag_objs.append(tag)
 
             movie_entity_obj.tags.set(tag_objs)
 
-        if not movie_entity_obj.imdb_url:
-            movie_entity_obj.imdb_url = make_imdb_url(movie_details["imdb_id"])
+        if not movie_entity_obj.imdb_url and (imdb_id := movie_details.get("imdb_id")):
+            movie_entity_obj.imdb_url = make_imdb_url(imdb_id)
 
-        if not movie_entity_obj.image and (image_path := movie_details["poster_path"]):
-            image_content = File(tmdb_client.get_image("w500", image_path))
-            movie_entity_obj.image.save(image_path, image_content, save=False)
+        if not movie_entity_obj.image and (poster_path := movie_details.get("poster_path")):
+            image_content = File(tmdb_client.get_image("w500", poster_path))
+            movie_entity_obj.image.save(poster_path, image_content, save=False)
 
         movie_entity_obj.save()
 
@@ -238,35 +236,34 @@ class MovieAdmin(EntityBaseAdmin):
 
 @admin.register(Show)
 class ShowAdmin(EntityBaseAdmin):
-    def _fill_automagically(self, request: HttpRequest, object_id: int) -> None:
+    def _fill_automagically(self, request: HttpRequest, object_id: int) -> HttpResponse:
         show_entity_obj = Show.objects.get(id=object_id)
 
         response = tmdb_client.search(TMDBSupportedEntityType.SHOW, show_entity_obj.name)
         if len(response["results"]) < 1:
             messages.add_message(request, messages.ERROR, "No data found for this show.")
-            return
+            return self.redirect_to_change_view(object_id)
 
         show_id = response["results"][0]["id"]
         show_details = tmdb_client.get_details(TMDBSupportedEntityType.SHOW, show_id)
 
-        if not show_entity_obj.description:
-            show_entity_obj.description = show_details["overview"]
+        if not show_entity_obj.description and (overview := show_details.get("overview")):
+            show_entity_obj.description = overview
 
-        if not show_entity_obj.release_date:
-            show_entity_obj.release_date = show_details["first_air_date"]
+        if not show_entity_obj.release_date and (first_air_date := show_details.get("first_air_date")):
+            show_entity_obj.release_date = first_air_date
 
         if not show_entity_obj.tags.exists():
             tag_objs = []
-            for genre in show_details["genres"]:
+            for genre in show_details.get("genres", []):
                 tag = ShowTag.objects.get_or_create(name=genre["name"])[0]
                 tag_objs.append(tag)
 
             show_entity_obj.tags.set(tag_objs)
 
-        if not show_entity_obj.image:
-            image_path = show_details["poster_path"]
-            image_content = File(tmdb_client.get_image("w500", image_path))
-            show_entity_obj.image.save(image_path, image_content, save=False)
+        if not show_entity_obj.image and (poster_path := show_details.get("poster_path")):
+            image_content = File(tmdb_client.get_image("w500", poster_path))
+            show_entity_obj.image.save(poster_path, image_content, save=False)
 
         show_entity_obj.save()
 
@@ -277,25 +274,25 @@ class ShowAdmin(EntityBaseAdmin):
 class GameAdmin(EntityBaseAdmin):
     autocomplete_fields = (*EntityBaseAdmin.autocomplete_fields, *("platforms",))
 
-    def _fill_automagically(self, request: HttpRequest, object_id: int) -> None:
+    def _fill_automagically(self, request: HttpRequest, object_id: int) -> HttpResponse:
         game_entity_obj = Game.objects.get(id=object_id)
 
         response = igdb_client.search(game_entity_obj.name)
         if len(response) < 1:
             messages.add_message(request, messages.ERROR, "No data found for this game.")
-            return
+            return self.redirect_to_change_view(object_id)
 
         game_details = response[0]
 
-        if not game_entity_obj.description:
-            game_entity_obj.description = game_details["summary"]
+        if not game_entity_obj.description and (summary := game_details.get("summary")):
+            game_entity_obj.description = summary
 
-        if not game_entity_obj.release_date:
-            game_entity_obj.release_date = datetime.date.fromtimestamp(game_details["first_release_date"])
+        if not game_entity_obj.release_date and (release_date := game_details.get("first_release_date")):
+            game_entity_obj.release_date = datetime.date.fromtimestamp(release_date)
 
         if not game_entity_obj.tags.exists():
             tag_objs = []
-            for genre in game_details["genres"]:
+            for genre in game_details.get("genres", []):
                 tag = GameTag.objects.get_or_create_with_aliases(genre["name"])[0]
                 tag_objs.append(tag)
 
@@ -303,7 +300,7 @@ class GameAdmin(EntityBaseAdmin):
 
         if not game_entity_obj.platforms.exists():
             platform_objs = []
-            for platform in game_details["platforms"]:
+            for platform in game_details.get("platforms", []):
                 try:
                     platform_obj = Platform.objects.get_with_aliases(platform["name"])
                     platform_objs.append(platform_obj)
@@ -317,17 +314,17 @@ class GameAdmin(EntityBaseAdmin):
             game_entity_obj.platforms.set(platform_objs)
 
         if not game_entity_obj.developer:
-            for company in game_details["involved_companies"]:
+            for company in game_details.get("involved_companies", []):
                 if company["developer"]:
                     game_entity_obj.developer.append(company["company"]["name"])
 
         if not game_entity_obj.publisher:
-            for company in game_details["involved_companies"]:
+            for company in game_details.get("involved_companies", []):
                 if company["publisher"]:
                     game_entity_obj.publisher.append(company["company"]["name"])
 
-        if not game_entity_obj.image:
-            image_id = game_details["cover"]["image_id"]
+        if not game_entity_obj.image and (cover := game_details.get("cover")):
+            image_id = cover["image_id"]
             image_content = File(igdb_client.get_cover_image(image_id))
             game_entity_obj.image.save(f"{image_id}.webp", image_content, save=False)
 
@@ -373,14 +370,14 @@ class BookAdmin(EntityBaseAdmin):
 
         return None
 
-    def _fill_automagically(self, request: HttpRequest, object_id: int) -> None:
+    def _fill_automagically(self, request: HttpRequest, object_id: int) -> HttpResponse:
         book_entity_obj = Book.objects.get(id=object_id)
 
         response = open_library_client.search(book_entity_obj.name)
         docs = response.get("docs", [])
         if len(docs) < 1:
             messages.add_message(request, messages.ERROR, "No data found for this book.")
-            return
+            return self.redirect_to_change_view(object_id)
 
         # AIDEV-NOTE: Open Library search docs contain lightweight metadata; work details hold description.
         book_data = docs[0]
