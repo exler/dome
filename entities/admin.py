@@ -227,8 +227,7 @@ class MovieAdmin(EntityBaseAdmin):
         if not movie_entity_obj.imdb_url:
             movie_entity_obj.imdb_url = make_imdb_url(movie_details["imdb_id"])
 
-        if not movie_entity_obj.image:
-            image_path = movie_details["poster_path"]
+        if not movie_entity_obj.image and (image_path := movie_details["poster_path"]):
             image_content = File(tmdb_client.get_image("w500", image_path))
             movie_entity_obj.image.save(image_path, image_content, save=False)
 
