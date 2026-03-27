@@ -401,7 +401,7 @@ class BookAdmin(EntityBaseAdmin):
             tag_objs = []
             for subject in book_data.get("subject", [])[:12]:
                 try:
-                    tag = BookTag.objects.get_with_aliases(subject)[0]
+                    tag = BookTag.objects.get_with_aliases(subject)
                     tag_objs.append(tag)
                 except BookTag.DoesNotExist:
                     pass
