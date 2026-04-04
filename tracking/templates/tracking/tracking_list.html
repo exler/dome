@@ -94,7 +94,7 @@
 
             {# List view #}
             <div class="border-3 border-black bg-white" style="box-shadow: 4px 4px 0px 0px #000;">
-                <div class="grid grid-cols-[3rem_4rem_1fr_8rem_5rem] p-2 bg-gray-100 border-b-2 border-black font-bold text-xs uppercase">
+                <div class="grid grid-cols-[3rem_4rem_1fr_8rem_5rem] p-2 bg-stone-100 dark:bg-neutral-800 border-b-2 border-black font-bold text-xs uppercase">
                     <div class="text-center">#</div>
                     <div></div>
                     <div class="text-left">Title</div>
@@ -104,7 +104,7 @@
 
                 {% for object in page_obj %}
                     <a href="{% url 'entities:entities-detail' entity_type object.object_id %}"
-                       class="grid grid-cols-[3rem_4rem_1fr_8rem_5rem] p-2 hover:bg-gray-50 border-b border-gray-200 items-center">
+                       class="grid grid-cols-[3rem_4rem_1fr_8rem_5rem] p-2 hover:bg-stone-50 dark:hover:bg-neutral-800/70 border-b border-gray-200 dark:border-neutral-700 items-center">
                         <div class="text-center text-sm font-bold">{{ forloop.counter0|add:page_obj.start_index }}</div>
                         <div>
                             <img src="{{ object.content_object.image|imageurl }}"

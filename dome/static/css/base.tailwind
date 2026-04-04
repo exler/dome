@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+/* AIDEV-NOTE: Use class-driven dark mode so footer toggle controls theme instead of system preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans: 'Sora', sans-serif;
-    --color-neo-yellow: #FFE500;
+    --color-neo-yellow: #EFD400;
     --color-neo-pink: #FF006E;
     --color-neo-green: #06FF00;
     --color-neo-purple: #8338EC;
